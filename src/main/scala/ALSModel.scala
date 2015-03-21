@@ -14,6 +14,11 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 
 class ALSModel(
+  count: Int
+)
+
+/*
+class ALSModel(
     override val rank: Int,
     override val userFeatures: RDD[(Int, Array[Double])],
     override val productFeatures: RDD[(Int, Array[Double])],
@@ -61,3 +66,4 @@ object ALSModel
         .objectFile[BiMap[String, Int]](s"/tmp/${id}/itemStringIntMap").first)
   }
 }
+*/

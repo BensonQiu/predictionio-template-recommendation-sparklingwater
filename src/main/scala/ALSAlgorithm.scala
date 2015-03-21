@@ -25,6 +25,8 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
   @transient lazy val logger = Logger[this.type]
 
   def train(data: PreparedData): ALSModel = {
+    new ALSModel(count = -1)
+    /*
     // MLLib ALS cannot handle empty training data.
     require(!data.ratings.take(1).isEmpty,
       s"RDD[Rating] in PreparedData cannot be empty." +
@@ -37,9 +39,12 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       // MLlibRating requires integer index for user and item
       MLlibRating(userStringIntMap(r.user), itemStringIntMap(r.item), r.rating)
     )
+    */
 
     // seed for MLlib ALS
+    /*
     val seed = ap.seed.getOrElse(System.nanoTime)
+    */
 
     // If you only have one type of implicit event (Eg. "view" event only),
     // replace ALS.train(...) with
@@ -52,6 +57,7 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       //alpha = 1.0,
       //seed = seed)
 
+    /*
     val m = ALS.train(
       ratings = mllibRatings,
       rank = ap.rank,
@@ -59,16 +65,20 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       lambda = ap.lambda,
       blocks = -1,
       seed = seed)
-
+    */
+/*
     new ALSModel(
       rank = m.rank,
       userFeatures = m.userFeatures,
       productFeatures = m.productFeatures,
       userStringIntMap = userStringIntMap,
       itemStringIntMap = itemStringIntMap)
+    */
   }
 
   def predict(model: ALSModel, query: Query): PredictedResult = {
+    new PredictedResult(energy = 300)
+    /*
     // Convert String ID to Int index for Mllib
     model.userStringIntMap.get(query.user).map { userInt =>
       // create inverse view of itemStringIntMap
@@ -83,5 +93,6 @@ class ALSAlgorithm(val ap: ALSAlgorithmParams)
       new PredictedResult(Array.empty)
     }
   }
-
+  */
+  }
 }

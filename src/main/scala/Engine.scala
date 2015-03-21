@@ -17,7 +17,7 @@ object RecommendationEngine extends IEngineFactory {
     new Engine(
       classOf[DataSource],
       classOf[Preparator],
-      Map("algo" -> classOf[Algorithm]),
+      Map("als" -> classOf[ALSAlgorithm]),
       classOf[Serving])
   }
 }

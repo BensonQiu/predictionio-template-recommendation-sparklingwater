@@ -1,4 +1,4 @@
-
+{
   "id": "default",
   "description": "Default settings",
   "engineFactory": "org.template.recommendation.RecommendationEngine",
