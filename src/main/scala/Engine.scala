@@ -4,17 +4,12 @@ import io.prediction.controller.IEngineFactory
 import io.prediction.controller.Engine
 
 case class Query(
-  user: String,
-  num: Int
+  circuit_id: Int,
+  time: String
 ) extends Serializable
 
 case class PredictedResult(
-  itemScores: Array[ItemScore]
-) extends Serializable
-
-case class ItemScore(
-  item: String,
-  score: Double
+  energy: Int
 ) extends Serializable
 
 object RecommendationEngine extends IEngineFactory {
@@ -22,7 +17,7 @@ object RecommendationEngine extends IEngineFactory {
     new Engine(
       classOf[DataSource],
       classOf[Preparator],
-      Map("als" -> classOf[ALSAlgorithm]),
+      Map("algo" -> classOf[Algorithm]),
       classOf[Serving])
   }
 }
