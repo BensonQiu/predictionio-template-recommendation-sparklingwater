@@ -28,45 +28,41 @@ class DataSource(val dsp: DataSourceParams)
     val eventsDb = Storage.getPEvents()
     val eventsRDD: RDD[Event] = eventsDb.find(
       appId = dsp.appId,
-      entityType = Some("user"),
-      eventNames = Some(List("rate", "buy")), // read "rate" and "buy" event
-      // targetEntityType is optional field of an event.
-      targetEntityType = Some(Some("item")))(sc)
+      entityType = Some("electric_load"),
+      eventNames = Some(List("predict_energy")))(sc)
 
-    val ratingsRDD: RDD[Rating] = eventsRDD.map { event =>
-      val rating = try {
-        val ratingValue: Double = event.event match {
-          case "rate" => event.properties.get[Double]("rating")
-          case "buy" => 4.0 // map buy event to rating value of 4
+    val electricalLoadRDD: RDD[ElectricalLoad] = eventsRDD.map { event =>
+      val electricalLoad: ElectricalLoad = 
+        event.event match {
+          case "predict_energy" => 
+            ElectricalLoad(event.properties.get[Int]("time"),
+                           event.properties.get[Double]("conference_load"),
+                           event.properties.get[Double]("openoffice_load"),
+                           event.properties.get[Double]("elevator1_load"),
+                           event.properties.get[Double]("elevator2_load")
+                          )
           case _ => throw new Exception(s"Unexpected event ${event} is read.")
         }
-        // entityId and targetEntityId is String
-        Rating(event.entityId,
-          event.targetEntityId.get,
-          ratingValue)
-      } catch {
-        case e: Exception => {
-          logger.error(s"Cannot convert ${event} to Rating. Exception: ${e}.")
-          throw e
-        }
-      }
-      rating
+        electricalLoad
     }.cache()
 
-    new TrainingData(ratingsRDD)
+    new TrainingData(electricalLoadRDD)
   }
 }
 
-case class Rating(
-  user: String,
-  item: String,
-  rating: Double
+case class ElectricalLoad(
+  //TODO: Eventually store electrical load in Array[Double] format.
+  time: Int,
+  conference_load: Double,
+  openoffice_load: Double,
+  elevator1_load: Double,
+  elevator2_load: Double
 )
 
 class TrainingData(
-  val ratings: RDD[Rating]
-) extends Serializable {
+  val electricalLoads: RDD[ElectricalLoad]
+) extends Serializable /* {
   override def toString = {
-    s"ratings: [${ratings.count()}] (${ratings.take(2).toList}...)"
+    s"electricalLoads: [${electricalLoads.count()}] (${electricalLoads.take(2).toList}...)"
   }
-}
+} */
