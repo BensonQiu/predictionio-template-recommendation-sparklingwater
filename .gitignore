@@ -1,4 +1,10 @@
+# Datasets
 data/sample_movielens_data.txt
+*.csv
+
 manifest.json
 target/
 pio.log
+
+# PIO App Access Key
+*.ini

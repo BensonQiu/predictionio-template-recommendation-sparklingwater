@@ -1,10 +1,10 @@
-{
+
   "id": "default",
   "description": "Default settings",
   "engineFactory": "org.template.recommendation.RecommendationEngine",
   "datasource": {
     "params" : {
-      "appId": 1
+      "appId": 3
     }
   },
   "algorithms": [

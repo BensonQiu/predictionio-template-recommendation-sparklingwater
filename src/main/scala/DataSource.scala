@@ -11,6 +11,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 
+import org.apache.spark.h2o._
+
 import grizzled.slf4j.Logger
 
 case class DataSourceParams(appId: Int) extends Params
