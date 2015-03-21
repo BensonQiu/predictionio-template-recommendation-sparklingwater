@@ -36,7 +36,7 @@ def import_events(client, file):
             break
 
         client.create_event(
-            event = 'electric_load',
+            event = 'predict_energy',
             entity_type = 'electric_load',
             entity_id = str(currRow),
             properties = {
