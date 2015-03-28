@@ -1,55 +1,48 @@
 """
 Import Verdigris energy data for H2O Sparkling Water Engine.
 
-The csv file is missing some data, so only import data from rows 1506-2984 for now. Also, for testing purposes, only import the time column and four columns of electrical load data.
-
 15_minute_energy.csv:
-    Column A(0): Time in seconds
-    Column B(1): Plug Loads:Conference
-    Column C(2): Plug Loads:Open Office
-    Column D(3): Misc Equipment:Elevator
-    Column E(4): Misc Equipment:Elevator
+    Column 0: Time in seconds
+    Columns 1-535: Electrical loads for circuits 0-534
 """
 
 import predictionio
 import argparse
 import csv
 
-START_ROW = 1506
-END_ROW = 2984
-
 def import_events(client, file):
     f = open(file, 'r')
     csvFile = csv.reader(f)
 
-    # Skip header line
-    csvFile.next()
     print "Importing electric load data..."
 
-    currRow = 0
-    plugload_id = 0
-    for row in csvFile:
-        currRow += 1
-        if (currRow < START_ROW):
-            continue
-        elif (currRow > END_ROW):
-            break
+    header = csvFile.next()
+    csvData = {}
+    for i in xrange(0, len(header)-1):
+        csvData[i] = []
 
+    for row in csvFile:
+        # Iterate through each circuit. If data is present for the current
+        # row, add it to csvData.
+        for i in xrange(1,len(row)):
+            if (row[i] != ''):
+                timeAndEnergy = (row[0],row[i])
+                csvData[i-1].append(timeAndEnergy)
+    
+    f.close()
+
+    for circuitId in csvData:
         client.create_event(
             event = 'predict_energy',
             entity_type = 'electric_load',
-            entity_id = str(currRow),
+            entity_id = circuitId,
             properties = {
-                'time': int(row[0]),
-                'conference_load': float(row[1]),
-                'openoffice_load': 0.0 if (row[2] == '') else float(row[2]),
-                'elevator1_load': float(row[3]),
-                'elevator2_load': float(row[4])
+                'circuitId': circuitId,
+                'timeAndEnergy': csvData[circuitId]
             }
         )
-        
-    f.close()
-    print "%d rows are imported." % (END_ROW - START_ROW + 1)
+    
+    print "Imported data for %d circuits" % len(csvData)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
