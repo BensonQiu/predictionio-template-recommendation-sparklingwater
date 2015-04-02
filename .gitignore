@@ -8,3 +8,5 @@ pio.log
 
 # PIO App Access Key
 *.ini
+
+*.swp
