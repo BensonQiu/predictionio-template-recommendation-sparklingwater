@@ -16,7 +16,7 @@ import org.apache.spark.h2o._
 import grizzled.slf4j.Logger
 
 case class DataSourceParams(appId: Int) extends Params
-
+ 
 class DataSource(val dsp: DataSourceParams)
   extends PDataSource[TrainingData,
       EmptyEvaluationInfo, Query, EmptyActualResult] {
@@ -35,11 +35,15 @@ class DataSource(val dsp: DataSourceParams)
       val electricalLoad: ElectricalLoad = 
         event.event match {
           case "predict_energy" => 
-            ElectricalLoad(event.properties.get[Int]("time"),
-                           event.properties.get[Double]("conference_load"),
-                           event.properties.get[Double]("openoffice_load"),
-                           event.properties.get[Double]("elevator1_load"),
-                           event.properties.get[Double]("elevator2_load")
+            val circuitId = event.properties.get[Int]("circuitId")
+            val timeArray: Seq[Int] = 
+              event.properties.get[Seq[String]]("timeArray").map { time => time.toInt }
+            val energyArray: Seq[Double] = 
+              event.properties.get[Seq[String]]("energyArray").map { energy => energy.toDouble }
+
+            ElectricalLoad(event.properties.get[Int]("circuitId"),
+                           time = timeArray.head,
+                           energy = energyArray.head
                           )
           case _ => throw new Exception(s"Unexpected event ${event} is read.")
         }
@@ -51,12 +55,9 @@ class DataSource(val dsp: DataSourceParams)
 }
 
 case class ElectricalLoad(
-  //TODO: Eventually store electrical load in Array[Double] format.
+  circuitId: Int,
   time: Int,
-  conference_load: Double,
-  openoffice_load: Double,
-  elevator1_load: Double,
-  elevator2_load: Double
+  energy: Double
 )
 
 class TrainingData(

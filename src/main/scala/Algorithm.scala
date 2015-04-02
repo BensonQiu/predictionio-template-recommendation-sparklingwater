@@ -9,8 +9,7 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 
 import org.apache.spark.h2o._
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.SchemaRDD
+import org.apache.spark.sql.{SQLContext, SchemaRDD}
 import hex.deeplearning._
 import hex.deeplearning.DeepLearningModel.DeepLearningParameters
 
@@ -39,18 +38,22 @@ class Algorithm(val ap: AlgorithmParams)
     val result: SchemaRDD = sql("SELECT * FROM electricalLoads")
 
     val dlParams: DeepLearningParameters = new DeepLearningParameters()
-    dlParams._train = result('conference_load, 'time)
+    dlParams._train = result('time, 'energy)
+    dlParams._response_column = 'energy
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
      
-    new Model(count = result.count.toInt,
+    new Model(count = result.count.toInt
+    /*
               h2oContext = h2oContext,
               result = result,
-              dlModel = dlModel
+                dlModel = dlModel
+                */
              )
   }
 
   def predict(model: Model, query: Query): PredictedResult = {
+    /*
     import model.h2oContext._
 
     val result = model.result
@@ -61,12 +64,18 @@ class Algorithm(val ap: AlgorithmParams)
       map ( _.result.getOrElse(Double.NaN) ).collect
 
     new PredictedResult(energy = model.count)
+    */
+
+    new PredictedResult(energy = -1)
+
   }
 }
 
-class Model(
-  val count: Int,
+class Model (
+  val count: Int
+  /*
   val h2oContext: H2OContext,
   val result: SchemaRDD,
   val dlModel: DeepLearningModel
-)
+  */
+) extends Serializable

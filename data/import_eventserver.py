@@ -17,32 +17,38 @@ def import_events(client, file):
     print "Importing electric load data..."
 
     header = csvFile.next()
-    csvData = {}
+    csvTimeData = {}
+    csvEnergyData = {}
     for i in xrange(0, len(header)-1):
-        csvData[i] = []
+        csvTimeData[i] = []
+        csvEnergyData[i] = []
 
     for row in csvFile:
         # Iterate through each circuit. If data is present for the current
         # row, add it to csvData.
         for i in xrange(1,len(row)):
             if (row[i] != ''):
-                timeAndEnergy = (row[0],row[i])
-                csvData[i-1].append(timeAndEnergy)
+                time = row[0]
+                energy = row[i]
+                csvTimeData[i-1].append(time)
+                csvEnergyData[i-1].append(energy)
     
     f.close()
 
-    for circuitId in csvData:
+    for circuitId in csvTimeData:
+        print 'Importing', circuitId
         client.create_event(
             event = 'predict_energy',
             entity_type = 'electric_load',
             entity_id = circuitId,
             properties = {
                 'circuitId': circuitId,
-                'timeAndEnergy': csvData[circuitId]
+                'timeArray': csvTimeData[circuitId],
+                'energyArray': csvEnergyData[circuitId]
             }
         )
     
-    print "Imported data for %d circuits" % len(csvData)
+    print "Imported data for %d circuits" % len(csvTimeData)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
