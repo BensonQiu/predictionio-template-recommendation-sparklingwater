@@ -5,6 +5,7 @@ data/sample_movielens_data.txt
 manifest.json
 target/
 pio.log
+/pio.sbt
 
 # PIO App Access Key
 *.ini

@@ -26,7 +26,7 @@ class Algorithm(val ap: AlgorithmParams)
 
   @transient lazy val logger = Logger[this.type]
 
-  def train(data: PreparedData): Model = {
+  def train(sc: SparkContext, data: PreparedData): Model = {
     val electricalLoads : RDD[ElectricalLoad] = data.electricalLoads
 
     val h2oContext = new H2OContext(electricalLoads.context).start()
