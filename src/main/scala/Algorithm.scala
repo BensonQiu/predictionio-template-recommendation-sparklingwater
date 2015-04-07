@@ -2,6 +2,8 @@ package org.template.recommendation
 
 import io.prediction.controller.P2LAlgorithm
 import io.prediction.controller.Params
+import io.prediction.controller.IPersistentModel
+
 import io.prediction.data.storage.BiMap
 
 import org.apache.spark.SparkContext
@@ -29,10 +31,10 @@ class Algorithm(val ap: AlgorithmParams)
   def train(sc: SparkContext, data: PreparedData): Model = {
     val electricalLoads : RDD[ElectricalLoad] = data.electricalLoads
 
-    val h2oContext = new H2OContext(electricalLoads.context).start()
+    val h2oContext = new H2OContext(sc).start()
     import h2oContext._
 
-    val sqlContext = new SQLContext(electricalLoads.context)
+    val sqlContext = new SQLContext(sc)
     import sqlContext._
     electricalLoads.registerTempTable("electricalLoads")
     val result: SchemaRDD = sql("SELECT * FROM electricalLoads")
@@ -43,17 +45,14 @@ class Algorithm(val ap: AlgorithmParams)
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
      
-    new Model(count = result.count.toInt
-    /*
+    new Model(count = result.count.toInt,
               h2oContext = h2oContext,
               result = result,
-                dlModel = dlModel
-                */
+              dlModel = dlModel
              )
   }
 
   def predict(model: Model, query: Query): PredictedResult = {
-    /*
     import model.h2oContext._
 
     val result = model.result
@@ -64,18 +63,16 @@ class Algorithm(val ap: AlgorithmParams)
       map ( _.result.getOrElse(Double.NaN) ).collect
 
     new PredictedResult(energy = model.count)
-    */
-
-    new PredictedResult(energy = -1)
-
   }
 }
 
 class Model (
-  val count: Int
-  /*
+  val count: Int,
   val h2oContext: H2OContext,
   val result: SchemaRDD,
   val dlModel: DeepLearningModel
-  */
-) extends Serializable
+) extends IPersistentModel[Params] with Serializable {
+  def save(id: String, params: Params, sc: SparkContext): Boolean = {
+    false
+  }
+}
