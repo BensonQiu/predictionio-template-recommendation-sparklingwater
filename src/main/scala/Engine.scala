@@ -9,7 +9,7 @@ case class Query(
 ) extends Serializable
 
 case class PredictedResult(
-  energy: Int
+  energy: Double
 ) extends Serializable
 
 object RecommendationEngine extends IEngineFactory {

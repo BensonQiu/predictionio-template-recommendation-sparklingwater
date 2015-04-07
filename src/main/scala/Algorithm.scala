@@ -62,7 +62,7 @@ class Algorithm(val ap: AlgorithmParams)
       toRDD[DoubleHolder](predictionH2OFrame).
       map ( _.result.getOrElse(Double.NaN) ).collect
 
-    new PredictedResult(energy = model.count)
+    new PredictedResult(energy = predictionsFromModel(0))
   }
 }
 
