@@ -28,23 +28,18 @@ class DataSource(val dsp: DataSourceParams)
     val eventsDb = Storage.getPEvents()
     val eventsRDD: RDD[Event] = eventsDb.find(
       appId = dsp.appId,
-      entityType = Some("electric_load"),
+      entityType = Some("electrical_load"),
       eventNames = Some(List("predict_energy")))(sc)
 
     val electricalLoadRDD: RDD[ElectricalLoad] = eventsRDD.map { event =>
       val electricalLoad: ElectricalLoad = 
         event.event match {
           case "predict_energy" => 
-            val circuitId = event.properties.get[Int]("circuitId")
-            val timeArray: Seq[Int] = 
-              event.properties.get[Seq[String]]("timeArray").map { time => time.toInt }
-            val energyArray: Seq[Double] = 
-              event.properties.get[Seq[String]]("energyArray").map { energy => energy.toDouble }
-
-            ElectricalLoad(event.properties.get[Int]("circuitId"),
-                           time = timeArray.head,
-                           energy = energyArray.head
-                          )
+            ElectricalLoad(
+                circuitId = event.properties.get[String]("circuitId").toInt,
+                time = event.properties.get[String]("time").toInt,
+                energy = event.properties.get[String]("energy").toDouble
+              )
           case _ => throw new Exception(s"Unexpected event ${event} is read.")
         }
         electricalLoad
