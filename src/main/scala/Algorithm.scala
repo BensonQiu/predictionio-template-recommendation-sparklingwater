@@ -34,14 +34,13 @@ class Algorithm(val ap: AlgorithmParams)
     val h2oContext = new H2OContext(sc).start()
     import h2oContext._
 
-    val sqlContext = new SQLContext(sc)
-    import sqlContext._
-    electricalLoads.registerTempTable("electricalLoads")
-    val result: SchemaRDD = sql("SELECT * FROM electricalLoads")
+    val result = createDataFrame(data.electricalLoads)
 
     val dlParams: DeepLearningParameters = new DeepLearningParameters()
-    dlParams._train = result('time, 'energy)
+    dlParams._train = result('circuitId, 'time, 'energy)
     dlParams._response_column = 'energy
+    dlParams._epochs = 1
+
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
      
@@ -50,38 +49,36 @@ class Algorithm(val ap: AlgorithmParams)
       toRDD[DoubleHolder](predictionH2OFrame).
       map ( _.result.getOrElse(Double.NaN) ).collect
 
-    new Model(count = result.count.toInt,
+    new Model(count = -2,
               h2oContext = h2oContext,
-              result = result,
               dlModel = dlModel,
-              predictions = predictionsFromModel
+              predictions = predictionsFromModel,
+              sc = sc
              )
   }
 
   def predict(model: Model, query: Query): PredictedResult = {
-    val predictionsFromModel = model.predictions
-
-    /*
     import model.h2oContext._
-
-    val result = model.result
-    val dlModel = model.dlModel
-    val predictionH2OFrame = dlModel.score(result)('predict)
-    val predictionsFromModel = 
+  
+    val inputQuery = Seq(Input(query.circuit_id,query.time.toInt))
+    val inputDF = createDataFrame(model.sc.parallelize(inputQuery))
+    val predictionH2OFrame = model.dlModel.score(inputDF)('predict)
+    val predictionsFromModel =
       toRDD[DoubleHolder](predictionH2OFrame).
       map ( _.result.getOrElse(Double.NaN) ).collect
-      */
-
+    
     new PredictedResult(energy = predictionsFromModel(0))
   }
 }
 
+case class Input(circuitId: Int, time: Int)
+
 class Model (
   val count: Int,
   val h2oContext: H2OContext,
-  val result: SchemaRDD,
   val dlModel: DeepLearningModel,
-  val predictions: Array[Double]
+  val predictions: Array[Double],
+  val sc: SparkContext
 ) extends IPersistentModel[Params] with Serializable {
   def save(id: String, params: Params, sc: SparkContext): Boolean = {
     false
