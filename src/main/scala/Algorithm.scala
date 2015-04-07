@@ -45,14 +45,23 @@ class Algorithm(val ap: AlgorithmParams)
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
      
+    val predictionH2OFrame = dlModel.score(result)('predict)
+    val predictionsFromModel = 
+      toRDD[DoubleHolder](predictionH2OFrame).
+      map ( _.result.getOrElse(Double.NaN) ).collect
+
     new Model(count = result.count.toInt,
               h2oContext = h2oContext,
               result = result,
-              dlModel = dlModel
+              dlModel = dlModel,
+              predictions = predictionsFromModel
              )
   }
 
   def predict(model: Model, query: Query): PredictedResult = {
+    val predictionsFromModel = model.predictions
+
+    /*
     import model.h2oContext._
 
     val result = model.result
@@ -61,6 +70,7 @@ class Algorithm(val ap: AlgorithmParams)
     val predictionsFromModel = 
       toRDD[DoubleHolder](predictionH2OFrame).
       map ( _.result.getOrElse(Double.NaN) ).collect
+      */
 
     new PredictedResult(energy = predictionsFromModel(0))
   }
@@ -70,7 +80,8 @@ class Model (
   val count: Int,
   val h2oContext: H2OContext,
   val result: SchemaRDD,
-  val dlModel: DeepLearningModel
+  val dlModel: DeepLearningModel,
+  val predictions: Array[Double]
 ) extends IPersistentModel[Params] with Serializable {
   def save(id: String, params: Params, sc: SparkContext): Boolean = {
     false
