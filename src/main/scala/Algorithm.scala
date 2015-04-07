@@ -4,8 +4,6 @@ import io.prediction.controller.P2LAlgorithm
 import io.prediction.controller.Params
 import io.prediction.controller.IPersistentModel
 
-import io.prediction.data.storage.BiMap
-
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
@@ -43,16 +41,9 @@ class Algorithm(val ap: AlgorithmParams)
 
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
-     
-    val predictionH2OFrame = dlModel.score(result)('predict)
-    val predictionsFromModel = 
-      toRDD[DoubleHolder](predictionH2OFrame).
-      map ( _.result.getOrElse(Double.NaN) ).collect
 
-    new Model(count = -2,
-              h2oContext = h2oContext,
+    new Model(h2oContext = h2oContext,
               dlModel = dlModel,
-              predictions = predictionsFromModel,
               sc = sc
              )
   }
@@ -74,10 +65,8 @@ class Algorithm(val ap: AlgorithmParams)
 case class Input(circuitId: Int, time: Int)
 
 class Model (
-  val count: Int,
   val h2oContext: H2OContext,
   val dlModel: DeepLearningModel,
-  val predictions: Array[Double],
   val sc: SparkContext
 ) extends IPersistentModel[Params] with Serializable {
   def save(id: String, params: Params, sc: SparkContext): Boolean = {
