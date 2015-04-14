@@ -16,10 +16,8 @@ import hex.deeplearning.DeepLearningModel.DeepLearningParameters
 import grizzled.slf4j.Logger
 
 case class AlgorithmParams(
-  rank: Int,
-  numIterations: Int,
-  lambda: Double,
-  seed: Option[Long]) extends Params
+  epochs: Int
+) extends Params
 
 class Algorithm(val ap: AlgorithmParams)
   extends P2LAlgorithm[PreparedData, Model, Query, PredictedResult] {
@@ -37,7 +35,7 @@ class Algorithm(val ap: AlgorithmParams)
     val dlParams: DeepLearningParameters = new DeepLearningParameters()
     dlParams._train = result('circuitId, 'time, 'energy)
     dlParams._response_column = 'energy
-    dlParams._epochs = 1
+    dlParams._epochs = ap.epochs
 
     val dl: DeepLearning = new DeepLearning(dlParams)
     val dlModel: DeepLearningModel = dl.trainModel.get
