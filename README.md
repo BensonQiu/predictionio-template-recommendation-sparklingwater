@@ -106,4 +106,4 @@ $ pio deploy
 After deploying successfully, you can view the status of your engine at [http://localhost:8000](http://localhost:8000).
 
 ### 6. Using the Engine
-To do a sample query, run `python query.py` from the root directory of your engine. Customize the query by modifying the JSON `{ circuitId: 1, time: "1422985500" }` in `query.py`. The engine will return a JSON object containing predicted energy usage.
+To do a sample query, run `python send_query.py` from the root directory of your engine. Customize the query by modifying the JSON `{ circuitId: 3, time: "1429052520" }` in `send_query.py`. The engine will return a JSON object containing predicted energy usage.
